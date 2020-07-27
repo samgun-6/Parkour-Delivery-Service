@@ -7,6 +7,10 @@ public class PlayerController : MonoBehaviour{
     public float speed;
     public float elasticity;
     private Rigidbody2D rigBody;
+    bool isGrounded = false;
+    public Transform isGroundedChecker;
+    public float checkGroundRadius;
+    public LayerMask groundLayer;
     
     void Start(){
         rigBody = GetComponent<Rigidbody2D>();  //Get the rigidbody component
@@ -16,6 +20,7 @@ public class PlayerController : MonoBehaviour{
     void Update(){
         Move();
         Jump();
+        checkIfGrounded();
     }
 
     void Move() {
@@ -24,8 +29,16 @@ public class PlayerController : MonoBehaviour{
         rigBody.velocity = new Vector2(movement, rigBody.velocity.y);
     }
     void Jump() {
-        if (Input.GetKeyDown(KeyCode.Space)) {
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded) {
             rigBody.velocity = new Vector2(rigBody.velocity.x, elasticity);
+        }
+    }
+    void checkIfGrounded() {
+        Collider2D collider = Physics2D.OverlapCircle(isGroundedChecker.position, checkGroundRadius, groundLayer);
+        if(collider != null) {
+            isGrounded = true;
+        } else {
+            isGrounded = false;
         }
     }
 }
