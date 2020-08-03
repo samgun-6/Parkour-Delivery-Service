@@ -38,7 +38,7 @@ public class PlayerController : MonoBehaviour{
         rigBody.velocity = new Vector2(movement, rigBody.velocity.y);
     }
     void Jump() {
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded) {
+        if (Input.GetButtonDown("Jump") && isGrounded) {
             rigBody.velocity = new Vector2(rigBody.velocity.x, elasticity);
         }
     }
@@ -51,7 +51,7 @@ public class PlayerController : MonoBehaviour{
     void BetterJump() {
         if(rigBody.velocity.y < 0) {
             rigBody.velocity += Vector2.up * Physics2D.gravity * (fallMultiplier - 1) * Time.deltaTime;
-        }else if(rigBody.velocity.y > 0 && !Input.GetKey(KeyCode.Space)) {
+        }else if(rigBody.velocity.y > 0 && !Input.GetButtonDown("Jump")) {
             rigBody.velocity += Vector2.up * Physics2D.gravity * (lowJumpMultiplier - 1) * Time.deltaTime;
         }
     }
