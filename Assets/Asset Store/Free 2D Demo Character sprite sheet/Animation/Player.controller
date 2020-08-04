@@ -422,10 +422,10 @@ AnimatorState:
   m_TimeParameterActive: 0
   m_Motion: {fileID: 7400000, guid: f246d814aadccf646b7e688870264ec1, type: 2}
   m_Tag: 
-  m_SpeedParameter: 
-  m_MirrorParameter: 
+  m_SpeedParameter: Speed
+  m_MirrorParameter: Crouch
   m_CycleOffsetParameter: 
-  m_TimeParameter: 
+  m_TimeParameter: Speed
 --- !u!1102 &110241114
 AnimatorState:
   serializedVersion: 5
