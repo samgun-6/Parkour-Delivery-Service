@@ -184,10 +184,18 @@ PrefabInstance:
       propertyPath: m_LocalScale.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 431876, guid: 86665e566268cb5469dbb3747ca2839d, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9534654, guid: 86665e566268cb5469dbb3747ca2839d, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: a9181d851ba2deb41bee4201a8cc32b7, type: 2}
+      objectReference: {fileID: 9100000, guid: f96a9d5b7b39dfa42aaf1c762da759eb, type: 2}
+    - target: {fileID: 9534654, guid: 86665e566268cb5469dbb3747ca2839d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 21200848, guid: 86665e566268cb5469dbb3747ca2839d, type: 3}
       propertyPath: m_FlipX
       value: 0
@@ -202,7 +210,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 21200848, guid: 86665e566268cb5469dbb3747ca2839d, type: 3}
       propertyPath: m_SortingLayer
-      value: 1
+      value: -1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 86665e566268cb5469dbb3747ca2839d, type: 3}
@@ -422,6 +430,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 103188861}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &811174804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 811174803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4efab9474d284d40a5ae2f2ac938b6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &811174806 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 431876, guid: 86665e566268cb5469dbb3747ca2839d,
