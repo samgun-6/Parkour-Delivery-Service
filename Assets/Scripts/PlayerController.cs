@@ -1,5 +1,5 @@
 ﻿/*
- * Thanks to tutorial by craftgames which I used as help when making this script
+ * Thanks to tutorial by craftgames which I used as help when making most of this script
  * https://craftgames.co/unity-2d-platformer-movement/
  */
 using System.Collections;
