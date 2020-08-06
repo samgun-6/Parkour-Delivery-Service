@@ -15,6 +15,7 @@ public class PlayerAnim : MonoBehaviour {
     void Update() {
         Run();
         Jump();
+        Crouch();
 
     }
     void Run() {
@@ -35,11 +36,16 @@ public class PlayerAnim : MonoBehaviour {
             anim.SetBool("flying", true);
         }else if (PController.checkIfGrounded()){
             anim.SetBool("flying", false);
-            anim.SetTrigger("landing");
         }
 
     }
     void Crouch() {
+        if(Input.GetKeyDown("down") || Input.GetKeyDown("s")) {
+            anim.SetBool("crouch", true);
+        }
 
+        if(Input.GetKeyUp("down") || Input.GetKeyUp("s")) {
+            anim.SetBool("crouch", false);
+        }
     }
 }
