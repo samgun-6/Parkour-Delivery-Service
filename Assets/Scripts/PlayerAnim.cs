@@ -13,25 +13,35 @@ public class PlayerAnim : MonoBehaviour {
     }
 
     void Update() {
-        Run();
+        Move();
         Jump();
         Crouch();
 
     }
-    void Run() {
+    void Move() {
+        //Check if character is running, sprinting or both 
         if (Input.GetButton("Horizontal") && PController.checkIfGrounded()) {
-            anim.SetBool("isRunning", true);
+            if (Input.GetKey(KeyCode.J)) {
+                anim.SetBool("isSprinting", true);
+                anim.SetBool("isRunning", true);
+            } else {
+                anim.SetBool("isRunning", true);
+                anim.SetBool("isSprinting", false);
+            }
         } else {
             anim.SetBool("isRunning", false);
+            anim.SetBool("isSprinting", false);
         }
     }
     void Jump() {
+        //Check if the character is jumping
         if (Input.GetButtonDown("Jump") && PController.checkIfGrounded()) {
             anim.SetTrigger("jump");
         } else if(Input.GetButtonUp("Jump")){
             anim.ResetTrigger("jump");
         }
 
+        //Check if the caracter is still in the air
         if (!PController.checkIfGrounded()) {
             anim.SetBool("flying", true);
         }else if (PController.checkIfGrounded()){
@@ -40,11 +50,11 @@ public class PlayerAnim : MonoBehaviour {
 
     }
     void Crouch() {
-        if(Input.GetKeyDown("down") || Input.GetKeyDown("s")) {
+        if(Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S)) {
             anim.SetBool("crouch", true);
         }
 
-        if(Input.GetKeyUp("down") || Input.GetKeyUp("s")) {
+        if(Input.GetKeyUp(KeyCode.DownArrow) || Input.GetKeyUp(KeyCode.S)) {
             anim.SetBool("crouch", false);
         }
     }

@@ -9,9 +9,11 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour{
 
     public float speed;
+    public float sprintSpeed;
     public float elasticity;
     private Rigidbody2D rigBody;
     private bool facingRight;
+    private float movement;
 
     //Ground variables
     bool isGrounded = false;
@@ -32,17 +34,24 @@ public class PlayerController : MonoBehaviour{
     void Update(){
         float horizontal = Input.GetAxis("Horizontal");
         Move(horizontal);
-        flip(horizontal);
+        Flip(horizontal);
         Jump();
         isGrounded = checkIfGrounded();
         BetterJump();
     }
 
     void Move(float horizontal) {
-        float movement = horizontal * speed;           //Decides movement speed per second
+
+        //Set movement speed per second
+        if (Input.GetKey(KeyCode.J)) {
+            movement = horizontal * sprintSpeed;
+        } else{
+            movement = horizontal * speed;          
+        }
+        //Apply force
         rigBody.velocity = new Vector2(movement, rigBody.velocity.y);
     }
-    void flip(float horizontal) {
+    void Flip(float horizontal) {
         if(horizontal > 0 && !facingRight || horizontal < 0 && facingRight) {
             facingRight = !facingRight;
             Vector3 playerScale = transform.localScale;
