@@ -24,10 +24,20 @@ public class PlayerController : MonoBehaviour{
     //Variables for a better jump
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
+
+    //Variables for crouching
+    private bool isCrouched;
+    private float crouchHeight = 1.7f;
+    private float standHeight = 2.56f;
+    private float crouchOffset = -0.44f;
+
+    CapsuleCollider2D playerCollider;
     
     void Start(){
         rigBody = GetComponent<Rigidbody2D>();  //Get the rigidbody component
+        playerCollider = GetComponent<CapsuleCollider2D>(); //Get the player collider
         facingRight = true;
+        isCrouched = false;
     }
 
     // Update is called once per frame
@@ -36,8 +46,10 @@ public class PlayerController : MonoBehaviour{
         Move(horizontal);
         Flip(horizontal);
         Jump();
-        isGrounded = checkIfGrounded();
+        isGrounded = CheckIfGrounded();
         BetterJump();
+        Crouch();
+        StandUp();
     }
 
     void Move(float horizontal) {
@@ -78,9 +90,25 @@ public class PlayerController : MonoBehaviour{
         }
     }
 
-    public bool checkIfGrounded() {
-        Collider2D collider = Physics2D.OverlapCircle(isGroundedChecker.position, checkGroundRadius, groundLayer);
-        if(collider != null) {
+    void Crouch() {
+        if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S) && isCrouched == false) {
+            isCrouched = true;
+            playerCollider.size = new Vector2(playerCollider.size.x, crouchHeight);
+            playerCollider.offset = new Vector2(0, crouchOffset);
+        }
+    }
+
+    void StandUp() {
+        if(Input.GetKeyUp(KeyCode.DownArrow) || Input.GetKeyUp(KeyCode.S) && isCrouched == true) {
+            isCrouched = false;
+            playerCollider.size = new Vector2(playerCollider.size.x, standHeight);
+            playerCollider.offset = new Vector2(0, 0);
+        }
+    }
+
+    public bool CheckIfGrounded() {
+        Collider2D groundCollider = Physics2D.OverlapCircle(isGroundedChecker.position, checkGroundRadius, groundLayer);
+        if(groundCollider != null) {
             return true;
         } else {
             return false;
