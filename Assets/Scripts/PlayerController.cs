@@ -8,29 +8,34 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour{
 
+    //Player
     public float speed;
     public float sprintSpeed;
     public float elasticity;
-    private Rigidbody2D rigBody;
+    public Rigidbody2D rigBody;
     private bool facingRight;
     private float movement;
 
-    //Ground variables
+    //Ground
     bool isGrounded = false;
     public Transform isGroundedChecker;
-    public float checkGroundRadius;
+    float checkGroundRadius = 0.05f;
     public LayerMask groundLayer;
 
-    //Variables for a better jump
+    //Better jump
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
 
-    //Variables for crouching
+    //Crouching
     private bool isCrouched;
     private float crouchHeight = 1.7f;
     private float standHeight = 2.56f;
     private float crouchOffset = -0.44f;
 
+    //Head
+    bool hasTopObstacle = false;
+    public Transform hasTopObstacleChecker;
+ 
     CapsuleCollider2D playerCollider;
     
     void Start(){
@@ -109,6 +114,14 @@ public class PlayerController : MonoBehaviour{
     public bool CheckIfGrounded() {
         Collider2D groundCollider = Physics2D.OverlapCircle(isGroundedChecker.position, checkGroundRadius, groundLayer);
         if(groundCollider != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public bool CheckIfGroundAbove() {
+        Collider2D topCollider = Physics2D.OverlapCircle(hasTopObstacleChecker.position, checkGroundRadius, groundLayer);
+        if (topCollider != null) {
             return true;
         } else {
             return false;
