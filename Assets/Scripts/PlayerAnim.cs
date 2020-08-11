@@ -20,7 +20,7 @@ public class PlayerAnim : MonoBehaviour {
     }
     void Move() {
         //Check if character is running, sprinting or both 
-        if (Input.GetButton("Horizontal") && PController.checkIfGrounded()) {
+        if (Input.GetButton("Horizontal") && PController.CheckIfGrounded()) {
             if (Input.GetKey(KeyCode.J)) {
                 anim.SetBool("isSprinting", true);
                 anim.SetBool("isRunning", true);
@@ -35,16 +35,16 @@ public class PlayerAnim : MonoBehaviour {
     }
     void Jump() {
         //Check if the character is jumping
-        if (Input.GetButtonDown("Jump") && PController.checkIfGrounded()) {
+        if (Input.GetButtonDown("Jump") && PController.CheckIfGrounded()) {
             anim.SetTrigger("jump");
         } else if(Input.GetButtonUp("Jump")){
             anim.ResetTrigger("jump");
         }
 
         //Check if the caracter is still in the air
-        if (!PController.checkIfGrounded()) {
+        if (!PController.CheckIfGrounded()) {
             anim.SetBool("flying", true);
-        }else if (PController.checkIfGrounded()){
+        }else if (PController.CheckIfGrounded()){
             anim.SetBool("flying", false);
         }
 
