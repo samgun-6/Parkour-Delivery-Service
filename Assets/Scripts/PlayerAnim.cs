@@ -17,7 +17,7 @@ public class PlayerAnim : MonoBehaviour {
         Jump();
         Crouch();
         CheckIfMoving();
-        CheckIfGrounded();
+        CheckColliders();
 
     }
     void Move() {
@@ -61,11 +61,20 @@ public class PlayerAnim : MonoBehaviour {
         }
     }
 
-   void CheckIfGrounded() {
+   void CheckColliders() {
+        //Ground collider
         if (PController.CheckIfGrounded()) {
             anim.SetBool("isGrounded", true);
         } else {
             anim.SetBool("isGrounded", false);
         }
+
+        //Wall collieder
+        if (PController.CheckIfHasWall()) {
+            anim.SetBool("hasWall", true);
+        } else {
+            anim.SetBool("hasWall", false);
+        }
+
     }
 }

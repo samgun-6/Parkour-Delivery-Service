@@ -18,7 +18,7 @@ public class PlayerController : MonoBehaviour{
 
     //Ground
     bool isGrounded = false;
-    public Transform isGroundedChecker;
+    public Transform isGroundedCheck;
     float checkGroundRadius = 0.05f;
     public LayerMask groundLayer;
 
@@ -34,7 +34,14 @@ public class PlayerController : MonoBehaviour{
 
     //Head
     bool hasTopObstacle = false;
-    public Transform hasTopObstacleChecker;
+    public Transform topObstacleCheck;
+
+    //Wall
+    bool wallDetect = false;
+    public Transform rightWallCheck;
+    public Transform leftWallCheck;
+    public float wallSlidingSpeed;
+    bool wallSliding;
  
     CapsuleCollider2D playerCollider;
     
@@ -52,6 +59,7 @@ public class PlayerController : MonoBehaviour{
         Flip(horizontal);
         Jump();
         isGrounded = CheckIfGrounded();
+        wallDetect = CheckIfHasWall();
         BetterJump();
         Crouch();
         StandUp();
@@ -112,7 +120,7 @@ public class PlayerController : MonoBehaviour{
     }
 
     public bool CheckIfGrounded() {
-        Collider2D groundCollider = Physics2D.OverlapCircle(isGroundedChecker.position, checkGroundRadius, groundLayer);
+        Collider2D groundCollider = Physics2D.OverlapCircle(isGroundedCheck.position, checkGroundRadius, groundLayer);
         if(groundCollider != null) {
             return true;
         } else {
@@ -120,8 +128,17 @@ public class PlayerController : MonoBehaviour{
         }
     }
     public bool CheckIfGroundAbove() {
-        Collider2D topCollider = Physics2D.OverlapCircle(hasTopObstacleChecker.position, checkGroundRadius, groundLayer);
+        Collider2D topCollider = Physics2D.OverlapCircle(topObstacleCheck.position, checkGroundRadius, groundLayer);
         if (topCollider != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public bool CheckIfHasWall() {
+        Collider2D rightWallCollider = Physics2D.OverlapCircle(rightWallCheck.position, checkGroundRadius, groundLayer);
+        Collider2D leftWallCollider = Physics2D.OverlapCircle(leftWallCheck.position, checkGroundRadius, groundLayer);
+        if (rightWallCollider != null || leftWallCollider != null) {
             return true;
         } else {
             return false;
