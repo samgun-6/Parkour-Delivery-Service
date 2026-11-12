@@ -74,7 +74,7 @@ public class PlayerController : MonoBehaviour{
             movement = horizontal * speed;          
         }
         //Apply force
-        rigBody.velocity = new Vector2(movement, rigBody.velocity.y);
+        rigBody.linearVelocity = new Vector2(movement, rigBody.linearVelocity.y);
     }
     void Flip(float horizontal) {
         if(horizontal > 0 && !facingRight || horizontal < 0 && facingRight) {
@@ -86,7 +86,7 @@ public class PlayerController : MonoBehaviour{
     }
     void Jump() {
         if (Input.GetButtonDown("Jump") && isGrounded) {
-            rigBody.velocity = new Vector2(rigBody.velocity.x, elasticity);
+            rigBody.linearVelocity = new Vector2(rigBody.linearVelocity.x, elasticity);
         }
     }
 
@@ -96,10 +96,10 @@ public class PlayerController : MonoBehaviour{
      * Tutorial https://www.youtube.com/watch?reload=9&v=7KiK0Aqtmzc
      */
     void BetterJump() {
-        if(rigBody.velocity.y < 0) {
-            rigBody.velocity += Vector2.up * Physics2D.gravity * (fallMultiplier - 1) * Time.deltaTime;
-        }else if(rigBody.velocity.y > 0 && !Input.GetButtonDown("Jump")) {
-            rigBody.velocity += Vector2.up * Physics2D.gravity * (lowJumpMultiplier - 1) * Time.deltaTime;
+        if(rigBody.linearVelocity.y < 0) {
+            rigBody.linearVelocity += Vector2.up * Physics2D.gravity * (fallMultiplier - 1) * Time.deltaTime;
+        }else if(rigBody.linearVelocity.y > 0 && !Input.GetButtonDown("Jump")) {
+            rigBody.linearVelocity += Vector2.up * Physics2D.gravity * (lowJumpMultiplier - 1) * Time.deltaTime;
         }
     }
 

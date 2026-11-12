@@ -54,7 +54,7 @@ public class PlayerAnim : MonoBehaviour {
     }
 
     void CheckIfMoving() {
-        if(PController.rigBody.velocity.x != 0) {
+        if(PController.rigBody.linearVelocity.x != 0) {
             anim.SetBool("isMoving", true);
         } else {
             anim.SetBool("isMoving", false);
