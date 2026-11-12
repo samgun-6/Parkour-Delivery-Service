@@ -9,6 +9,8 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+/[Rr]ecordings/
+.utmp/
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
@@ -69,3 +71,9 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Third-party Asset Store content: licensed per user, not redistributable.
+# Import the packs listed in README.md into Assets/ThirdParty/.
+# Kept after the *.meta re-include above so the folder meta stays ignored.
+/[Aa]ssets/ThirdParty/
+/[Aa]ssets/ThirdParty.meta
