@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour{
     public bool HasWall => wallDetect;
     public bool IsCrouching => isCrouched;
     public bool IsSprinting => sprintHeld;
+    public bool IsWallSliding => wallSliding;
     public float HorizontalInput => horizontalInput;
     public event Action Jumped;
 
@@ -50,7 +51,14 @@ public class PlayerController : MonoBehaviour{
     public Transform leftWallCheck;
     public float wallSlidingSpeed;
     bool wallSliding;
- 
+    int wallSide; //+1 wall to the right, -1 to the left, 0 none
+
+    //Wall jump: push away from the wall, briefly ignoring move input
+    //so the player cannot immediately steer back into the wall
+    public Vector2 wallJumpForce = new Vector2(10f, 13f);
+    public float wallJumpLockTime = 0.2f;
+    float wallJumpLockUntil;
+
     CapsuleCollider2D playerCollider;
 
     //Input sampled in Update, consumed in FixedUpdate
@@ -80,6 +88,11 @@ public class PlayerController : MonoBehaviour{
     void Start(){
         rigBody = GetComponent<Rigidbody2D>();  //Get the rigidbody component
         playerCollider = GetComponent<CapsuleCollider2D>(); //Get the player collider
+        //Without a frictionless body, pushing into a wall pins the player in place
+        //and wall sliding never starts
+        if (rigBody.sharedMaterial == null) {
+            rigBody.sharedMaterial = new PhysicsMaterial2D("PlayerNoFriction") { friction = 0f };
+        }
         facingRight = true;
         isCrouched = false;
     }
@@ -95,7 +108,9 @@ public class PlayerController : MonoBehaviour{
         if (input.Jump.WasPressedThisFrame()) {
             jumpRequested = true;
         }
-        Flip(horizontalInput);
+        if (!IsWallJumpLocked()) {
+            Flip(horizontalInput);
+        }
         Crouch();
         StandUp();
     }
@@ -103,10 +118,20 @@ public class PlayerController : MonoBehaviour{
     // Physics runs at a fixed rate, independent of frame rate
     void FixedUpdate(){
         isGrounded = CheckIfGrounded();
-        wallDetect = CheckIfHasWall();
-        Move(horizontalInput);
+        wallSide = GetWallSide();
+        wallDetect = wallSide != 0;
+        //Slide when airborne, falling and pushing into a wall
+        wallSliding = !isGrounded && wallDetect && horizontalInput * wallSide > 0 && rigBody.linearVelocity.y < 0;
+        if (!IsWallJumpLocked()) {
+            Move(horizontalInput);
+        }
         Jump();
         BetterJump();
+        WallSlide();
+    }
+
+    bool IsWallJumpLocked() {
+        return Time.time < wallJumpLockUntil;
     }
 
     void Move(float horizontal) {
@@ -132,8 +157,24 @@ public class PlayerController : MonoBehaviour{
         if (jumpRequested && isGrounded) {
             rigBody.linearVelocity = new Vector2(rigBody.linearVelocity.x, elasticity);
             Jumped?.Invoke();
+        } else if (jumpRequested && wallDetect && (wallSliding || horizontalInput * wallSide > 0)) {
+            WallJump();
         }
         jumpRequested = false;
+    }
+
+    void WallJump() {
+        rigBody.linearVelocity = new Vector2(-wallSide * wallJumpForce.x, wallJumpForce.y);
+        wallJumpLockUntil = Time.time + wallJumpLockTime;
+        wallSliding = false;
+        Flip(-wallSide);
+        Jumped?.Invoke();
+    }
+
+    void WallSlide() {
+        if (wallSliding && rigBody.linearVelocity.y < -wallSlidingSpeed) {
+            rigBody.linearVelocity = new Vector2(rigBody.linearVelocity.x, -wallSlidingSpeed);
+        }
     }
 
     /*
@@ -158,7 +199,9 @@ public class PlayerController : MonoBehaviour{
     }
 
     void StandUp() {
-        if(!crouchHeld && isCrouched == true) {
+        //Stay crouched under a low ceiling even when the key is released
+        hasTopObstacle = isCrouched && CheckIfGroundAbove();
+        if(!crouchHeld && isCrouched == true && !hasTopObstacle) {
             isCrouched = false;
             playerCollider.size = new Vector2(playerCollider.size.x, standHeight);
             playerCollider.offset = new Vector2(0, 0);
@@ -182,12 +225,17 @@ public class PlayerController : MonoBehaviour{
         }
     }
     public bool CheckIfHasWall() {
-        Collider2D rightWallCollider = Physics2D.OverlapCircle(rightWallCheck.position, checkGroundRadius, groundLayer);
-        Collider2D leftWallCollider = Physics2D.OverlapCircle(leftWallCheck.position, checkGroundRadius, groundLayer);
-        if (rightWallCollider != null || leftWallCollider != null) {
-            return true;
-        } else {
-            return false;
+        return GetWallSide() != 0;
+    }
+
+    //The wall checkers flip with the sprite, so derive the world side from their position
+    int GetWallSide() {
+        if (Physics2D.OverlapCircle(rightWallCheck.position, checkGroundRadius, groundLayer) != null) {
+            return Math.Sign(rightWallCheck.position.x - transform.position.x);
         }
+        if (Physics2D.OverlapCircle(leftWallCheck.position, checkGroundRadius, groundLayer) != null) {
+            return Math.Sign(leftWallCheck.position.x - transform.position.x);
+        }
+        return 0;
     }
 }
