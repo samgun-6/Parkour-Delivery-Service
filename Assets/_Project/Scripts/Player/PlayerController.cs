@@ -44,7 +44,13 @@ public class PlayerController : MonoBehaviour{
     bool wallSliding;
  
     CapsuleCollider2D playerCollider;
-    
+
+    //Input sampled in Update, consumed in FixedUpdate
+    float horizontalInput;
+    bool sprintHeld;
+    bool jumpHeld;
+    bool jumpRequested;
+
     void Start(){
         rigBody = GetComponent<Rigidbody2D>();  //Get the rigidbody component
         playerCollider = GetComponent<CapsuleCollider2D>(); //Get the player collider
@@ -52,26 +58,36 @@ public class PlayerController : MonoBehaviour{
         isCrouched = false;
     }
 
-    // Update is called once per frame
+    // Update is called once per frame: read input and handle non-physics state
     void Update(){
-        float horizontal = Input.GetAxis("Horizontal");
-        Move(horizontal);
-        Flip(horizontal);
-        Jump();
-        isGrounded = CheckIfGrounded();
-        wallDetect = CheckIfHasWall();
-        BetterJump();
+        horizontalInput = Input.GetAxis("Horizontal");
+        sprintHeld = Input.GetKey(KeyCode.J);
+        jumpHeld = Input.GetButton("Jump");
+        //Latch the press so a FixedUpdate that runs after this frame still sees it
+        if (Input.GetButtonDown("Jump")) {
+            jumpRequested = true;
+        }
+        Flip(horizontalInput);
         Crouch();
         StandUp();
+    }
+
+    // Physics runs at a fixed rate, independent of frame rate
+    void FixedUpdate(){
+        isGrounded = CheckIfGrounded();
+        wallDetect = CheckIfHasWall();
+        Move(horizontalInput);
+        Jump();
+        BetterJump();
     }
 
     void Move(float horizontal) {
 
         //Set movement speed per second
-        if (Input.GetKey(KeyCode.J)) {
+        if (sprintHeld) {
             movement = horizontal * sprintSpeed;
         } else{
-            movement = horizontal * speed;          
+            movement = horizontal * speed;
         }
         //Apply force
         rigBody.linearVelocity = new Vector2(movement, rigBody.linearVelocity.y);
@@ -85,9 +101,10 @@ public class PlayerController : MonoBehaviour{
         }
     }
     void Jump() {
-        if (Input.GetButtonDown("Jump") && isGrounded) {
+        if (jumpRequested && isGrounded) {
             rigBody.linearVelocity = new Vector2(rigBody.linearVelocity.x, elasticity);
         }
+        jumpRequested = false;
     }
 
     /*
@@ -97,9 +114,9 @@ public class PlayerController : MonoBehaviour{
      */
     void BetterJump() {
         if(rigBody.linearVelocity.y < 0) {
-            rigBody.linearVelocity += Vector2.up * Physics2D.gravity * (fallMultiplier - 1) * Time.deltaTime;
-        }else if(rigBody.linearVelocity.y > 0 && !Input.GetButton("Jump")) {
-            rigBody.linearVelocity += Vector2.up * Physics2D.gravity * (lowJumpMultiplier - 1) * Time.deltaTime;
+            rigBody.linearVelocity += Vector2.up * Physics2D.gravity * (fallMultiplier - 1) * Time.fixedDeltaTime;
+        }else if(rigBody.linearVelocity.y > 0 && !jumpHeld) {
+            rigBody.linearVelocity += Vector2.up * Physics2D.gravity * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
         }
     }
 
