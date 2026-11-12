@@ -5,6 +5,7 @@
 using System;
 using ParkourDelivery.Input;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour{
 
@@ -50,8 +51,14 @@ public class PlayerController : MonoBehaviour{
     public Transform rightWallCheck;
     public Transform leftWallCheck;
     public float wallSlidingSpeed;
+    //The design calls for sliding "for a bit": after this long on one wall the player falls normally
+    public float wallSlideMaxSeconds = 1.5f;
     bool wallSliding;
+    float wallSlideTime;
     int wallSide; //+1 wall to the right, -1 to the left, 0 none
+    //Side of the last wall jump; the next one must come off the other side (or after landing),
+    //otherwise a single wall could be climbed by jumping off it and steering back
+    int lastWallJumpSide;
 
     //Wall jump: push away from the wall, briefly ignoring move input
     //so the player cannot immediately steer back into the wall
@@ -71,9 +78,17 @@ public class PlayerController : MonoBehaviour{
 
     void Awake(){
         controls = new PlayerControls();
+        //Latch every press as it is processed; polling WasPressedThisFrame in Update
+        //misses presses handled by an earlier input update in the same frame
+        controls.Player.Jump.performed += OnJumpPerformed;
+    }
+
+    void OnJumpPerformed(InputAction.CallbackContext context){
+        jumpRequested = true;
     }
 
     void OnEnable(){
+        jumpRequested = false;
         controls.Player.Enable();
     }
 
@@ -104,10 +119,6 @@ public class PlayerController : MonoBehaviour{
         sprintHeld = input.Sprint.IsPressed();
         jumpHeld = input.Jump.IsPressed();
         crouchHeld = input.Crouch.IsPressed();
-        //Latch the press so a FixedUpdate that runs after this frame still sees it
-        if (input.Jump.WasPressedThisFrame()) {
-            jumpRequested = true;
-        }
         if (!IsWallJumpLocked()) {
             Flip(horizontalInput);
         }
@@ -120,8 +131,13 @@ public class PlayerController : MonoBehaviour{
         isGrounded = CheckIfGrounded();
         wallSide = GetWallSide();
         wallDetect = wallSide != 0;
-        //Slide when airborne, falling and pushing into a wall
-        wallSliding = !isGrounded && wallDetect && horizontalInput * wallSide > 0 && rigBody.linearVelocity.y < 0;
+        if (isGrounded) {
+            lastWallJumpSide = 0;
+        }
+        //Slide when airborne, falling and pushing into a wall, for a limited time
+        bool pushingIntoWall = !isGrounded && wallDetect && horizontalInput * wallSide > 0 && rigBody.linearVelocity.y < 0;
+        wallSlideTime = pushingIntoWall ? wallSlideTime + Time.fixedDeltaTime : 0f;
+        wallSliding = pushingIntoWall && wallSlideTime <= wallSlideMaxSeconds;
         if (!IsWallJumpLocked()) {
             Move(horizontalInput);
         }
@@ -157,7 +173,9 @@ public class PlayerController : MonoBehaviour{
         if (jumpRequested && isGrounded) {
             rigBody.linearVelocity = new Vector2(rigBody.linearVelocity.x, elasticity);
             Jumped?.Invoke();
-        } else if (jumpRequested && wallDetect && (wallSliding || horizontalInput * wallSide > 0)) {
+        } else if (jumpRequested && wallDetect && wallSide != lastWallJumpSide) {
+            //Any jump press while airborne against a wall counts, including pressing
+            //away from the wall in the same moment, which is how players do it
             WallJump();
         }
         jumpRequested = false;
@@ -166,6 +184,7 @@ public class PlayerController : MonoBehaviour{
     void WallJump() {
         rigBody.linearVelocity = new Vector2(-wallSide * wallJumpForce.x, wallJumpForce.y);
         wallJumpLockUntil = Time.time + wallJumpLockTime;
+        lastWallJumpSide = wallSide;
         wallSliding = false;
         Flip(-wallSide);
         Jumped?.Invoke();

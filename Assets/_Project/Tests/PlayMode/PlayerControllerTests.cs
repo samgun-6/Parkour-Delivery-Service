@@ -138,5 +138,44 @@ namespace ParkourDelivery.Tests
             yield return null;
             Assert.IsTrue(controller.IsCrouching, "should not stand up into the ceiling");
         }
+
+        [UnityTest]
+        public IEnumerator CannotWallJumpTwiceOffTheSameWall()
+        {
+            CreateBlock("Wall", new Vector2(1.05f, 10f), new Vector2(1f, 40f));
+            CreatePlayer(new Vector2(0, 20f));
+            int jumps = 0;
+            controller.Jumped += () => jumps++;
+
+            PressKey(keyboard.dKey);
+            yield return new WaitForSeconds(0.5f);
+            PressKey(keyboard.spaceKey);
+            yield return new WaitForSeconds(0.6f); // lock ends, still holding D: back at the wall
+            Assert.IsTrue(controller.HasWall, State());
+
+            ReleaseKey(keyboard.spaceKey);
+            PressKey(keyboard.spaceKey);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreEqual(1, jumps, "second wall jump off the same wall");
+            ReleaseKey(keyboard.spaceKey);
+            ReleaseKey(keyboard.dKey);
+        }
+
+        [UnityTest]
+        public IEnumerator WallSlideEndsAfterMaxTime()
+        {
+            CreateBlock("Wall", new Vector2(1.05f, 0f), new Vector2(1f, 80f));
+            CreatePlayer(new Vector2(0, 30f));
+            controller.wallSlideMaxSeconds = 0.5f;
+
+            PressKey(keyboard.dKey);
+            yield return new WaitForSeconds(1.5f);
+
+            Assert.IsFalse(controller.IsWallSliding);
+            Assert.Less(controller.rigBody.linearVelocity.y, -3f, "falling freely again");
+            ReleaseKey(keyboard.dKey);
+        }
     }
 }
