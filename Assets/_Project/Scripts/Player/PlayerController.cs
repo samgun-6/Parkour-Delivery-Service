@@ -98,13 +98,13 @@ public class PlayerController : MonoBehaviour{
     void BetterJump() {
         if(rigBody.linearVelocity.y < 0) {
             rigBody.linearVelocity += Vector2.up * Physics2D.gravity * (fallMultiplier - 1) * Time.deltaTime;
-        }else if(rigBody.linearVelocity.y > 0 && !Input.GetButtonDown("Jump")) {
+        }else if(rigBody.linearVelocity.y > 0 && !Input.GetButton("Jump")) {
             rigBody.linearVelocity += Vector2.up * Physics2D.gravity * (lowJumpMultiplier - 1) * Time.deltaTime;
         }
     }
 
     void Crouch() {
-        if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S) && isCrouched == false) {
+        if ((Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S)) && isCrouched == false) {
             isCrouched = true;
             playerCollider.size = new Vector2(playerCollider.size.x, crouchHeight);
             playerCollider.offset = new Vector2(0, crouchOffset);
@@ -112,7 +112,7 @@ public class PlayerController : MonoBehaviour{
     }
 
     void StandUp() {
-        if(Input.GetKeyUp(KeyCode.DownArrow) || Input.GetKeyUp(KeyCode.S) && isCrouched == true) {
+        if((Input.GetKeyUp(KeyCode.DownArrow) || Input.GetKeyUp(KeyCode.S)) && isCrouched == true) {
             isCrouched = false;
             playerCollider.size = new Vector2(playerCollider.size.x, standHeight);
             playerCollider.offset = new Vector2(0, 0);
