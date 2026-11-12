@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Workflow overrides
+
+These override the global "never run `git add`" / "commit only when I say" rules, for this repo only:
+
+- Claude stages and commits its own work without waiting for review, still one logical commit at a time (conventional commits, English, Co-Authored-By trailer), and continues to the next planned commit.
+- `git push` (including force-push), branch deletion on the remote and GitHub settings changes always require explicit approval.
+
 ## Project
 
 2D parkour platformer built in **Unity 2019.4.3f1** (see `ProjectSettings/ProjectVersion.txt`) as a course project (1DV437 Introduction to Game Programming). The full intended feature set — wall jump, slide, dash, roll on landing, lives/score/timer HUD, packages to collect, traps, birds, menus — is described in `Assets/sg223bv-Game Description.pdf`. Only player movement and animation are implemented so far; treat the PDF as the spec for new features.
