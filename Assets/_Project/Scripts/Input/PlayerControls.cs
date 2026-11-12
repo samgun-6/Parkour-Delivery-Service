@@ -313,6 +313,46 @@ namespace ParkourDelivery.Input
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Game"",
+            ""id"": ""6f1c2a0e-3b4d-4c55-9a61-2d7e8f901c01"",
+            ""actions"": [
+                {
+                    ""name"": ""Pause"",
+                    ""type"": ""Button"",
+                    ""id"": ""6f1c2a0e-3b4d-4c55-9a61-2d7e8f901c02"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""6f1c2a0e-3b4d-4c55-9a61-2d7e8f901c03"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6f1c2a0e-3b4d-4c55-9a61-2d7e8f901c04"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -346,11 +386,15 @@ namespace ParkourDelivery.Input
             m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
             m_Player_Crouch = m_Player.FindAction("Crouch", throwIfNotFound: true);
             m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
+            // Game
+            m_Game = asset.FindActionMap("Game", throwIfNotFound: true);
+            m_Game_Pause = m_Game.FindAction("Pause", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
         {
             UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, PlayerControls.Player.Disable() has not been called.");
+            UnityEngine.Debug.Assert(!m_Game.enabled, "This will cause a leak and performance issues, PlayerControls.Game.Disable() has not been called.");
         }
 
         /// <summary>
@@ -551,6 +595,102 @@ namespace ParkourDelivery.Input
         /// Provides a new <see cref="PlayerActions" /> instance referencing this action map.
         /// </summary>
         public PlayerActions @Player => new PlayerActions(this);
+
+        // Game
+        private readonly InputActionMap m_Game;
+        private List<IGameActions> m_GameActionsCallbackInterfaces = new List<IGameActions>();
+        private readonly InputAction m_Game_Pause;
+        /// <summary>
+        /// Provides access to input actions defined in input action map "Game".
+        /// </summary>
+        public struct GameActions
+        {
+            private @PlayerControls m_Wrapper;
+
+            /// <summary>
+            /// Construct a new instance of the input action map wrapper class.
+            /// </summary>
+            public GameActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+            /// <summary>
+            /// Provides access to the underlying input action "Game/Pause".
+            /// </summary>
+            public InputAction @Pause => m_Wrapper.m_Game_Pause;
+            /// <summary>
+            /// Provides access to the underlying input action map instance.
+            /// </summary>
+            public InputActionMap Get() { return m_Wrapper.m_Game; }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+            public void Enable() { Get().Enable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+            public void Disable() { Get().Disable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+            public bool enabled => Get().enabled;
+            /// <summary>
+            /// Implicitly converts an <see ref="GameActions" /> to an <see ref="InputActionMap" /> instance.
+            /// </summary>
+            public static implicit operator InputActionMap(GameActions set) { return set.Get(); }
+            /// <summary>
+            /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <param name="instance">Callback instance.</param>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+            /// </remarks>
+            /// <seealso cref="GameActions" />
+            public void AddCallbacks(IGameActions instance)
+            {
+                if (instance == null || m_Wrapper.m_GameActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_GameActionsCallbackInterfaces.Add(instance);
+                @Pause.started += instance.OnPause;
+                @Pause.performed += instance.OnPause;
+                @Pause.canceled += instance.OnPause;
+            }
+
+            /// <summary>
+            /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <remarks>
+            /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+            /// </remarks>
+            /// <seealso cref="GameActions" />
+            private void UnregisterCallbacks(IGameActions instance)
+            {
+                @Pause.started -= instance.OnPause;
+                @Pause.performed -= instance.OnPause;
+                @Pause.canceled -= instance.OnPause;
+            }
+
+            /// <summary>
+            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="GameActions.UnregisterCallbacks(IGameActions)" />.
+            /// </summary>
+            /// <seealso cref="GameActions.UnregisterCallbacks(IGameActions)" />
+            public void RemoveCallbacks(IGameActions instance)
+            {
+                if (m_Wrapper.m_GameActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            /// <summary>
+            /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+            /// </summary>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+            /// </remarks>
+            /// <seealso cref="GameActions.AddCallbacks(IGameActions)" />
+            /// <seealso cref="GameActions.RemoveCallbacks(IGameActions)" />
+            /// <seealso cref="GameActions.UnregisterCallbacks(IGameActions)" />
+            public void SetCallbacks(IGameActions instance)
+            {
+                foreach (var item in m_Wrapper.m_GameActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_GameActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
+        /// <summary>
+        /// Provides a new <see cref="GameActions" /> instance referencing this action map.
+        /// </summary>
+        public GameActions @Game => new GameActions(this);
         private int m_KeyboardSchemeIndex = -1;
         /// <summary>
         /// Provides access to the input control scheme.
@@ -612,6 +752,21 @@ namespace ParkourDelivery.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnSprint(InputAction.CallbackContext context);
+        }
+        /// <summary>
+        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Game" which allows adding and removing callbacks.
+        /// </summary>
+        /// <seealso cref="GameActions.AddCallbacks(IGameActions)" />
+        /// <seealso cref="GameActions.RemoveCallbacks(IGameActions)" />
+        public interface IGameActions
+        {
+            /// <summary>
+            /// Method invoked when associated input action "Pause" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnPause(InputAction.CallbackContext context);
         }
     }
 }
