@@ -2,7 +2,8 @@
     "name": "ParkourDelivery",
     "rootNamespace": "ParkourDelivery",
     "references": [
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

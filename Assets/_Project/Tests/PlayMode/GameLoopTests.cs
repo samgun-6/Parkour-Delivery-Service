@@ -2,8 +2,10 @@ using System.Collections;
 using NUnit.Framework;
 using ParkourDelivery.Core;
 using ParkourDelivery.Gameplay;
+using ParkourDelivery.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace ParkourDelivery.Tests
 {
@@ -14,9 +16,11 @@ namespace ParkourDelivery.Tests
     public class GameLoopTests : PlayerFixture
     {
         private GameManager manager;
+        private GameUI ui;
 
         public override void TearDown()
         {
+            if (ui != null) Object.Destroy(ui.gameObject);
             if (manager != null) Object.Destroy(manager.gameObject);
             base.TearDown();
         }
@@ -104,6 +108,33 @@ namespace ParkourDelivery.Tests
 
             Assert.AreEqual(GameState.LevelComplete, manager.State);
             Assert.GreaterOrEqual(manager.FinalScore, ScoreCalculator.PointsPerPackage);
+        }
+
+        [UnityTest]
+        public IEnumerator HudCountsPackagesAndEndPanelShowsScore()
+        {
+            CreateFloor();
+            CreatePlayer(new Vector2(0, 1.4f));
+            AddToRight<Package>("Package", 2f);
+            AddToRight<DeliveryPoint>("Delivery", 5f);
+            yield return StartRun();
+            ui = new GameObject("UI").AddComponent<GameUI>();
+            yield return null;
+
+            yield return RunRight(1.5f);
+
+            var texts = ui.GetComponentsInChildren<Text>(includeInactive: true);
+            StringAssert.Contains("Packages: 1/1", FindText(texts, "Packages").text);
+            var endPanel = ui.transform.Find("GameCanvas/EndPanel");
+            Assert.IsTrue(endPanel.gameObject.activeSelf, "end panel visible");
+            StringAssert.Contains($"Score: {manager.FinalScore}", endPanel.Find("Score").GetComponent<Text>().text);
+        }
+
+        private static Text FindText(Text[] texts, string name)
+        {
+            foreach (var t in texts) if (t.name == name) return t;
+            Assert.Fail($"no text named {name}");
+            return null;
         }
     }
 }

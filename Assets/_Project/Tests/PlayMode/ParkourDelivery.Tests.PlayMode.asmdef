@@ -3,6 +3,7 @@
     "rootNamespace": "ParkourDelivery.Tests",
     "references": [
         "ParkourDelivery",
+        "UnityEngine.UI",
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
         "UnityEngine.TestRunner",
