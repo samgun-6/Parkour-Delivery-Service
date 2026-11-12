@@ -1,0 +1,28 @@
+# Normalize line endings for everything git detects as text.
+* text=auto
+
+# Unity serialized assets (Force Text): diff as text, merge with
+# Unity's Smart Merge (configure `unityyamlmerge` locally, see README).
+*.unity       text merge=unityyamlmerge
+*.prefab      text merge=unityyamlmerge
+*.asset       text merge=unityyamlmerge
+*.meta        text merge=unityyamlmerge
+*.controller  text merge=unityyamlmerge
+*.anim        text merge=unityyamlmerge
+*.mat         text merge=unityyamlmerge
+*.physicsMaterial2D text merge=unityyamlmerge
+*.inputactions text
+
+*.cs          text diff=csharp
+
+# Binary assets go through Git LFS.
+*.png  filter=lfs diff=lfs merge=lfs -text
+*.jpg  filter=lfs diff=lfs merge=lfs -text
+*.psd  filter=lfs diff=lfs merge=lfs -text
+*.wav  filter=lfs diff=lfs merge=lfs -text
+*.mp3  filter=lfs diff=lfs merge=lfs -text
+*.ogg  filter=lfs diff=lfs merge=lfs -text
+*.ttf  filter=lfs diff=lfs merge=lfs -text
+*.otf  filter=lfs diff=lfs merge=lfs -text
+*.fbx  filter=lfs diff=lfs merge=lfs -text
+*.pdf  filter=lfs diff=lfs merge=lfs -text
