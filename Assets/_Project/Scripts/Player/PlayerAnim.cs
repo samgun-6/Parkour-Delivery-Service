@@ -1,29 +1,35 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+// Drives the Animator from PlayerController's state; reads no input itself.
 public class PlayerAnim : MonoBehaviour {
 
     private Animator anim;
     private PlayerController PController;
-    void Start() {
+
+    void Awake() {
         anim = GetComponent<Animator>();
         PController = GetComponent<PlayerController>();
     }
 
+    void OnEnable() {
+        PController.Jumped += OnJumped;
+    }
+
+    void OnDisable() {
+        PController.Jumped -= OnJumped;
+    }
+
     void Update() {
         Move();
-        Jump();
         Crouch();
         CheckIfMoving();
         CheckColliders();
 
     }
     void Move() {
-        //Check if character is running or sprinting 
-        if (Input.GetButton("Horizontal") && PController.CheckIfGrounded()) {
-            if (Input.GetKey(KeyCode.J)) {
+        //Check if character is running or sprinting
+        if (PController.HorizontalInput != 0 && PController.IsGrounded) {
+            if (PController.IsSprinting) {
                 anim.SetBool("isSprinting", true);
                 anim.SetBool("isRunning", true);
             } else {
@@ -35,22 +41,11 @@ public class PlayerAnim : MonoBehaviour {
             anim.SetBool("isSprinting", false);
         }
     }
-    void Jump() {
-        //Check if the character is jumping
-        if (Input.GetButtonDown("Jump")) {
-            anim.SetTrigger("jump");
-        } else if(Input.GetButtonUp("Jump")){
-            anim.ResetTrigger("jump");
-        }
+    void OnJumped() {
+        anim.SetTrigger("jump");
     }
     void Crouch() {
-        if(Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S)) {
-            anim.SetBool("crouch", true);
-        }
-
-        if(Input.GetKeyUp(KeyCode.DownArrow) || Input.GetKeyUp(KeyCode.S)) {
-            anim.SetBool("crouch", false);
-        }
+        anim.SetBool("crouch", PController.IsCrouching);
     }
 
     void CheckIfMoving() {
@@ -63,14 +58,14 @@ public class PlayerAnim : MonoBehaviour {
 
    void CheckColliders() {
         //Ground collider
-        if (PController.CheckIfGrounded()) {
+        if (PController.IsGrounded) {
             anim.SetBool("isGrounded", true);
         } else {
             anim.SetBool("isGrounded", false);
         }
 
         //Wall collieder
-        if (PController.CheckIfHasWall()) {
+        if (PController.HasWall) {
             anim.SetBool("hasWall", true);
         } else {
             anim.SetBool("hasWall", false);

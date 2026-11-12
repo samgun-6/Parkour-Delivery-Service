@@ -2,11 +2,19 @@
  * Thanks to tutorial by craftgames which I used as help when making most of this script
  * https://craftgames.co/unity-2d-platformer-movement/
  */
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using ParkourDelivery.Input;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour{
+
+    //Read-only state for animation and game logic
+    public bool IsGrounded => isGrounded;
+    public bool HasWall => wallDetect;
+    public bool IsCrouching => isCrouched;
+    public bool IsSprinting => sprintHeld;
+    public float HorizontalInput => horizontalInput;
+    public event Action Jumped;
 
     //Player
     public float speed;
@@ -46,10 +54,28 @@ public class PlayerController : MonoBehaviour{
     CapsuleCollider2D playerCollider;
 
     //Input sampled in Update, consumed in FixedUpdate
+    PlayerControls controls;
     float horizontalInput;
     bool sprintHeld;
     bool jumpHeld;
+    bool crouchHeld;
     bool jumpRequested;
+
+    void Awake(){
+        controls = new PlayerControls();
+    }
+
+    void OnEnable(){
+        controls.Player.Enable();
+    }
+
+    void OnDisable(){
+        controls.Player.Disable();
+    }
+
+    void OnDestroy(){
+        controls.Dispose();
+    }
 
     void Start(){
         rigBody = GetComponent<Rigidbody2D>();  //Get the rigidbody component
@@ -60,11 +86,13 @@ public class PlayerController : MonoBehaviour{
 
     // Update is called once per frame: read input and handle non-physics state
     void Update(){
-        horizontalInput = Input.GetAxis("Horizontal");
-        sprintHeld = Input.GetKey(KeyCode.J);
-        jumpHeld = Input.GetButton("Jump");
+        var input = controls.Player;
+        horizontalInput = input.Move.ReadValue<float>();
+        sprintHeld = input.Sprint.IsPressed();
+        jumpHeld = input.Jump.IsPressed();
+        crouchHeld = input.Crouch.IsPressed();
         //Latch the press so a FixedUpdate that runs after this frame still sees it
-        if (Input.GetButtonDown("Jump")) {
+        if (input.Jump.WasPressedThisFrame()) {
             jumpRequested = true;
         }
         Flip(horizontalInput);
@@ -103,6 +131,7 @@ public class PlayerController : MonoBehaviour{
     void Jump() {
         if (jumpRequested && isGrounded) {
             rigBody.linearVelocity = new Vector2(rigBody.linearVelocity.x, elasticity);
+            Jumped?.Invoke();
         }
         jumpRequested = false;
     }
@@ -121,7 +150,7 @@ public class PlayerController : MonoBehaviour{
     }
 
     void Crouch() {
-        if ((Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S)) && isCrouched == false) {
+        if (crouchHeld && isCrouched == false) {
             isCrouched = true;
             playerCollider.size = new Vector2(playerCollider.size.x, crouchHeight);
             playerCollider.offset = new Vector2(0, crouchOffset);
@@ -129,7 +158,7 @@ public class PlayerController : MonoBehaviour{
     }
 
     void StandUp() {
-        if((Input.GetKeyUp(KeyCode.DownArrow) || Input.GetKeyUp(KeyCode.S)) && isCrouched == true) {
+        if(!crouchHeld && isCrouched == true) {
             isCrouched = false;
             playerCollider.size = new Vector2(playerCollider.size.x, standHeight);
             playerCollider.offset = new Vector2(0, 0);
